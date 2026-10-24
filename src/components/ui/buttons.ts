@@ -1,0 +1,86 @@
+// ============================================================================
+// RMIS — THE button system (Jeton edition). Single source of truth for every
+// button class combination in the app. The buttons themselves are styled by
+// globals.css (.dlg-cta = RMIS Electric Blue primary, .dlg-ghost = white
+// secondary — both 12px radius, no drop shadows); these constants add the
+// standard layout/anatomy so call sites never re-type them (and never drift).
+//
+// Geometry (upload/DESIGN-RMIS-FINAL.md): buttons 12px radius; utility icon
+// buttons 16px; pills/badges/avatars stay 9999px capsules.
+//
+// Import from here everywhere:
+//   import { ctaBtn, ghostBtn, ghostBadBtn, iconBtn, iconBtnBad } from "@/components/ui/buttons";
+// ============================================================================
+
+/** Primary CTA — brand-600 button (44px, white ink, hover deepens).
+ *  Radius comes from .dlg-cta (--radius-control, 10px); the utility is kept
+ *  truthful rather than 16px so a call site that overrides the class still
+ *  lands on the control step. */
+export const ctaBtn =
+  "dlg-cta inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[10px] px-5 text-sm transition-all disabled:cursor-not-allowed disabled:opacity-50";
+
+/** Solid semantic CTAs — decision buttons wear the EXACT color of the
+ *  pipeline status they produce (Shortlist → --ok green, the Shortlisted
+ *  pill color; Not Qualified → --bad red, the Rejected pill color), so the
+ *  action and its outcome status read as one. Same geometry as ctaBtn. */
+export const ctaOkBtn =
+  "dlg-cta-ok inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[10px] px-5 text-sm transition-all disabled:cursor-not-allowed disabled:opacity-50";
+
+export const ctaBadBtn =
+  "dlg-cta-bad inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[10px] px-5 text-sm transition-all disabled:cursor-not-allowed disabled:opacity-50";
+
+/** Secondary — white ghost button (44px, hairline border). */
+export const ghostBtn =
+  "dlg-ghost inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[10px] px-4 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50";
+
+/** Destructive ghost — white button with the functional --bad tint. The ONE
+ *  destructive-confirm recipe (AlertDialogAction, row deletes, cancels).
+ *  Radius is explicit: there is no .dlg-* class here to set the control step,
+ *  and the rounded-* aliases all resolve to the 16px surface. */
+export const ghostBadBtn =
+  "inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[10px] border border-[var(--bad)]/30 bg-white px-4 text-sm font-medium text-[var(--bad)] transition-colors hover:bg-[var(--bad-bg)] disabled:cursor-not-allowed disabled:opacity-50";
+
+/** 36px quiet square icon button (10px control radius, cloud tile on hover)
+ *  for row quick actions. tap-44 grows the HIT AREA to 44px on touch without
+ *  changing the visual size — see globals.css. */
+export const iconBtn =
+  "tap-44 grid h-9 w-9 place-items-center rounded-[10px] text-stone transition-colors hover:bg-cloud hover:text-ink focus-ring";
+
+/** 36px destructive square icon button for row quick actions. */
+export const iconBtnBad =
+  "tap-44 grid h-9 w-9 place-items-center rounded-[10px] text-[var(--bad)] transition-colors hover:bg-[var(--bad-bg)] focus-ring";
+
+/** Modifier-only destructive ghost (append to ghostBtn when a full control
+ *  already carries the capsule base, e.g. AlertDialogAction). Class-based —
+ *  NOT utilities — because .dlg-ghost's unlayered color/background/border
+ *  would beat layered utilities (globals.css .dlg-ghost-bad). */
+export const ghostBadModifier = "dlg-ghost-bad";
+
+/** Modifier-only positive ghost (append to ghostBtn) — the mirror of
+ *  ghostBadModifier for affirmative secondary actions ("Flip to
+ *  Shortlisted"). Same unlayered-token mechanism (globals.css
+ *  .dlg-ghost-ok). */
+export const ghostOkModifier = "dlg-ghost-ok";
+
+/** Dialog cancel — the one secondary "Cancel" recipe for AlertDialogCancel /
+ *  form dialogs (44px ghost). The six profile sections and form-dialog
+ *  previously re-typed this identical string by hand. */
+export const cancelBtn =
+  "dlg-ghost min-h-[44px] px-5 py-2.5 text-sm";
+
+/** Section-header action pill (My Profile) — "Edit Profile" / "Done Editing"
+ *  / the blue "Save Changes".
+ *  F4 (UI review 2026-10-20): the old recipe was 36px on phones and 44px from
+ *  sm up — i.e. the SMALLER target on the device that gets touched. The
+ *  breakpoint is now the POINTER, not the width: the hit area is protected by
+ *  tap-44 (±4px invisible halo on coarse pointers) while the VISUAL size is
+ *  the compact header-pill step — user QA: the header button reads a notch
+ *  smaller now that it shares the title row on phones. */
+export const sectionCtaBtn =
+  "dlg-cta focus-ring tap-44 inline-flex h-10 min-h-[40px] items-center gap-1.5 px-3 text-[13px] [@media(pointer:fine)]:h-9 [@media(pointer:fine)]:min-h-[36px] [@media(pointer:fine)]:px-4";
+
+/** The ghost twin of sectionCtaBtn — the Personal Information header
+ *  "Cancel". Same pointer-first geometry; dialogs keep the full-size
+ *  cancelBtn (they are centered overlays, not squeezed header rows). */
+export const sectionGhostBtn =
+  "dlg-ghost tap-44 h-10 min-h-[40px] px-3 text-[13px] [@media(pointer:fine)]:h-9 [@media(pointer:fine)]:min-h-[36px] [@media(pointer:fine)]:px-4";

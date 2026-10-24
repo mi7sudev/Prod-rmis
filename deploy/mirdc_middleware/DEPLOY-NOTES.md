@@ -1,0 +1,125 @@
+# mirdc_middleware — UPDATED index.js (RMIS email-gateway integration)
+
+Drop-in replacement for the `index.js` currently running on the VM.
+**Zero new dependencies** — it uses only the packages already inside the
+existing `node_modules` (express, nodemailer, axios, cors, ejs, plus
+node's built-in `fs`).
+
+## Production-readiness additions (2026-10-23 — the Oct-22 outage fixes)
+
+The 2026-10-22 18:11 (UTC+8) outage returned a bare
+`500 {"error":"Internal server error"}` on every send for 15+ hours while
+`GET /health` kept reporting `{"status":"ok"}` — the relay was up, its SMTP
+session was not, and nothing in the HTTP surface said why (139 emails lost:
+133 OTP codes, 5 password resets, 1 test). Three ADDITIVE fixes, no contract
+change:
+
+| Area | Before | After |
+|---|---|---|
+| `GET /health` (no query) | `{status, uptime}` | **byte-identical** (process-up semantics preserved) |
+| `GET /health?smtp=1` | — | live SMTP readiness probe: `smtp:"ready"` after a real connect+auth (`transporter.verify()`), `smtp:"down (<reason>)"` otherwise; raced against a 4s guard so a blackholed socket can't hang monitoring. **One curl now answers "can this VM deliver RIGHT NOW"** — the probe that would have caught the Oct-22 outage immediately |
+| `POST /sendMail` 500 body | `{"error":"Internal server error"}` | `{"error":"Internal server error (SMTP: <reason>)"}` — same key, same status, original text preserved as the prefix; `<reason>` is the SMTP server's own response (e.g. `535 · Username and Password not accepted`) or the nodemailer error message, newline-collapsed, ≤160 chars. RMIS stores it verbatim in `email_logs.error` → outages become diagnosable from the app instead of requiring VM console access. Full stack remains in the relay's console log |
+| SMTP timeouts | none (a stalled socket could hold the HTTP request open indefinitely) | `connectionTimeout` 10s, `greetingTimeout` 10s, `socketTimeout` 20s — always shorter than RMIS's 15s fetch abort; normal sends finish in <2s and never hit these |
+
+Legacy endpoints, the `/sendMail` request contract, the 200-response shape,
+auth behavior, credentials and the log-service payload are all untouched.
+
+**Operational recommendation:** run `curl 'http://127.0.0.1:3232/health?smtp=1'`
+on the VM (or from the RMIS server) as part of every deploy and every
+"applicants say no email arrived" report — see
+`deploy/RUNBOOK-email-preflight.md` for the full go-live sequence and the
+outage recovery playbook.
+
+## How to deploy
+
+1. Back up the current file on the VM:  `cp index.js index.js.bak`
+2. Copy this `index.js` over it (same folder — it reads `./send-mail.html`
+   from its own directory at startup, exactly like the original).
+3. Restart the process (`pm2 restart <name>` or however it is supervised).
+4. Confirm: `curl http://127.0.0.1:3232/health` → `{"status":"ok",...}`
+
+No `.env` is required. Every new setting is env-overridable **with the
+original hardcoded values as fallbacks**, so deploying without any env
+changes reproduces the previous behavior exactly.
+
+## What changed (all ADDITIVE — existing systems cannot break)
+
+| Area | Before | After |
+|---|---|---|
+| `/iotOperatorsDetails`, `/get-pms-cmms`, `/bmisSupplierDetails`, `/iotmiddleware` | — | **byte-identical** (untouched) |
+| `/sendMail` request | `{system, to, cc, bcc, from, subject, message, html}` | same, **plus optional** `text` (plain-text part), `attachments: [{filename, content(base64), contentType?}]` (10 MB cap), and `replyTo` (Task 14 — explicit Reply-To, wins over `from`) |
+| `/sendMail` response 200 | `{message, defaultReplyTo}` | same keys, **plus** `messageId`, `accepted`, `rejected` |
+| Missing `to` | 500 from inside nodemailer | clear **400** "Missing or invalid to recipient" |
+| Failure logging to the log service | dead code (never ran) | actually posts `{system, email, send_status:"error not send"}` — same payload shape as the success log |
+| `/health` | — | new `GET /health` → `{status:"ok", uptime}` |
+| Auth on `/sendMail` | open | **still open by default.** Only if the VM sets `MIDDLEWARE_API_KEY` in its environment does `/sendMail` require the token (in `body.api` or an `x-api-key` header) |
+| SMTP/log credentials | hardcoded | same defaults, overridable via `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `LOG_URL`, `LOG_TOKEN` |
+| JSON body limit | 100 KB (express default) | 12 MB (needed for attachments; tiny legacy bodies unaffected) |
+
+The From header rule is unchanged: `"<system>" <systems@mirdc.dost.gov.ph>`.
+The Reply-To header resolves as `body.replyTo` (new, Task 14) → `body.from`
+(legacy) → absent (replies land in the SMTP account).
+
+## Why RMIS needs these additions
+
+The RMIS (Recruitment Management & Information System) sends applicant
+notices (shortlist, interview, regret, status changes) through this
+gateway. It always sends `message` (its own complete HTML email) plus
+`text` — the plain-text part raises deliverability and gives applicants a
+readable fallback. `system` is set to "DOST-MIRDC Recruitment" so the From
+line reads `«DOST-MIRDC Recruitment» <systems@mirdc.dost.gov.ph>`. RMIS
+also sends `api` (the shared token) — harmless today, and it future-proofs
+the call if the VM ever enables `MIDDLEWARE_API_KEY` strict mode.
+
+**Task 14 (2026-10):** RMIS now also sends
+`replyTo: "MIRDC HR Office" <recruitment@mirdc.dost.gov.ph>` on every
+message, so applicant replies reach the recruitment mailbox instead of the
+system mailer. Deploy this updated `index.js` to the VM (or verify the
+deployed one honors `body.replyTo`) and send a test notice — the received
+mail must show `Reply-To: "MIRDC HR Office" <recruitment@mirdc.dost.gov.ph>`.
+
+## RMIS-side configuration (on the RMIS host, NOT this VM)
+
+```
+EMAIL_PROVIDER=middleware
+EMAIL_MIDDLEWARE_URL="http://<this-vm>:3232"
+EMAIL_MIDDLEWARE_API_KEY="<shared token>"
+EMAIL_MIDDLEWARE_SYSTEM="DOST-MIRDC Recruitment"
+```
+
+See RMIS `DEPLOYMENT.md` for the full go-live checklist.
+
+## Verified (local staging, before hand-off)
+
+All tests ran against this exact `index.js` with a local SMTP sink (a real
+full SMTP conversation — EHLO → AUTH → MAIL → RCPT → DATA — captured the
+exact bytes handed to the transport; no email left the machine):
+
+- `GET /health` → 200 `{"status":"ok"}`
+- Legacy endpoints: wrong-token path still returns the original
+  `400 {"error":"Invalid API value"}`
+- Legacy `/sendMail` contract (`system/to/from/subject/message`): 200 with
+  the original keys **plus** `messageId` / `accepted` / `rejected`;
+  captured SMTP message shows correct `From:` (system display name),
+  `Reply-To:` (body `from`), `Subject:`, and the HTML body verbatim
+- Legacy EJS template path (`html: {message, url:{link,text}}`): renders
+  `send-mail.html` exactly as before ("Hi User," + message + button +
+  "This email is autogenerated by <system>")
+- RMIS-shaped request (`message` HTML + `text` + base64 attachment +
+  `api` token): 200; captured MIME is `multipart/mixed` →
+  `multipart/alternative` (text/plain + text/html) + the attachment
+- Validation: missing `to` → 400; missing `subject`+`message`+`html` → 400
+- Attachment guard: >10 MB (base64) → 413 `{"error":"Attachments exceed
+  the 10 MB limit"}`; bodies above the 12 MB JSON limit are rejected by
+  Express with its standard 413 page (same semantics as the original's
+  body-limit behavior, just a bigger threshold)
+- SMTP failure path: 500 `{"error":"Internal server error"}` (identical to
+  the original) and the failure-log post fires
+- Log-service outage: "Error posting log" is printed and the HTTP response
+  is unaffected (fire-and-forget, same as the original)
+- Strict mode: without `MIDDLEWARE_API_KEY` set → open (legacy behavior);
+  set → 401 without the token, accepted with the `x-api-key` header **and**
+  with `body.api`
+- End-to-end with the RMIS driver (`src/lib/email.ts` → `sendEmail()`):
+  `{"status":"sent","provider":"middleware","providerRef":"<messageId>"}`
+  and an `email_logs` audit row written with `status=sent`

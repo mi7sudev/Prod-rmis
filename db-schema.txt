@@ -1,0 +1,464 @@
+-- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "username" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "firstName" TEXT,
+    "middleName" TEXT,
+    "lastName" TEXT,
+    "role" TEXT NOT NULL DEFAULT 'APPLICANT',
+    "blocked" BOOLEAN NOT NULL DEFAULT false,
+    "confirmed" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "EmailOtp" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "email" TEXT NOT NULL,
+    "codeHash" TEXT NOT NULL,
+    "purpose" TEXT NOT NULL DEFAULT 'SIGNUP',
+    "expiresAt" DATETIME NOT NULL,
+    "attempts" INTEGER NOT NULL DEFAULT 0,
+    "consumedAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "Applicant" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "userId" TEXT,
+    "employeeNumber" TEXT,
+    "firstName" TEXT,
+    "middleName" TEXT,
+    "lastName" TEXT,
+    "extensionName" TEXT,
+    "nickname" TEXT,
+    "mobileNumber" TEXT,
+    "contactNumber" TEXT,
+    "contactNumberSec" TEXT,
+    "telephoneNumber" TEXT,
+    "emailAddress" TEXT,
+    "birthDate" TEXT,
+    "birthPlace" TEXT,
+    "gender" TEXT,
+    "civilStatus" TEXT,
+    "citizenship" TEXT,
+    "height" TEXT,
+    "weight" TEXT,
+    "bloodType" TEXT,
+    "religion" TEXT,
+    "ethnicity" TEXT,
+    "isPwd" BOOLEAN NOT NULL DEFAULT false,
+    "houseNumber" TEXT,
+    "street" TEXT,
+    "subdivision" TEXT,
+    "barangay" TEXT,
+    "city" TEXT,
+    "province" TEXT,
+    "country" TEXT,
+    "zipCode" TEXT,
+    "presentAddress" TEXT,
+    "permanentHouseNumber" TEXT,
+    "permanentStreet" TEXT,
+    "permanentSubdivision" TEXT,
+    "permanentBarangay" TEXT,
+    "permanentCity" TEXT,
+    "permanentProvince" TEXT,
+    "permanentZipCode" TEXT,
+    "pagibig" TEXT,
+    "gsis" TEXT,
+    "philhealth" TEXT,
+    "tin" TEXT,
+    "sss" TEXT,
+    "govtIssuedId" TEXT,
+    "govtIdIssuedNumber" TEXT,
+    "govtIdIssuedPlace" TEXT,
+    "govtIdDateIssued" TEXT,
+    "govtIdValidUntil" TEXT,
+    "isGovernment" BOOLEAN NOT NULL DEFAULT false,
+    "pendingCases" TEXT,
+    "adminCase" BOOLEAN NOT NULL DEFAULT false,
+    "adminCaseDetails" TEXT,
+    "crimeCharge" BOOLEAN NOT NULL DEFAULT false,
+    "crimeDate" TEXT,
+    "crimeCaseStatus" TEXT,
+    "characterReference" TEXT,
+    "specifyReferral" TEXT,
+    "remarks" TEXT,
+    "qualified" BOOLEAN NOT NULL DEFAULT false,
+    "isProfileComplete" BOOLEAN NOT NULL DEFAULT false,
+    "submittedDate" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Applicant_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Education" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "applicantId" INTEGER NOT NULL,
+    "educationLevel" TEXT,
+    "degree" TEXT,
+    "course" TEXT,
+    "specifyOthers" TEXT,
+    "schoolName" TEXT,
+    "ongoing" BOOLEAN NOT NULL DEFAULT false,
+    "isHighestEducation" BOOLEAN NOT NULL DEFAULT false,
+    "yearFrom" TEXT,
+    "yearTo" TEXT,
+    "highestLevel" TEXT,
+    "unitsEarned" TEXT,
+    "yearGraduated" TEXT,
+    "awards" TEXT,
+    "hrRemarks" TEXT,
+    "ord" REAL NOT NULL DEFAULT 0,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Education_applicantId_fkey" FOREIGN KEY ("applicantId") REFERENCES "Applicant" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "WorkExperience" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "applicantId" INTEGER NOT NULL,
+    "positionTitle" TEXT,
+    "employerName" TEXT,
+    "employerAddress" TEXT,
+    "isPresentWork" BOOLEAN NOT NULL DEFAULT false,
+    "isGovtService" BOOLEAN NOT NULL DEFAULT false,
+    "dateFrom" DATETIME,
+    "dateTo" DATETIME,
+    "statusOfEmployment" TEXT,
+    "monthlySalary" REAL,
+    "supervisorName" TEXT,
+    "supervisorPosition" TEXT,
+    "office" TEXT,
+    "reasonForLeaving" TEXT,
+    "accomplishment" TEXT,
+    "actualDuties" TEXT,
+    "hrRemarks" TEXT,
+    "yearDecimal" REAL,
+    "ord" REAL NOT NULL DEFAULT 0,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "WorkExperience_applicantId_fkey" FOREIGN KEY ("applicantId") REFERENCES "Applicant" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Training" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "applicantId" INTEGER NOT NULL,
+    "title" TEXT,
+    "typeOfTraining" TEXT,
+    "specifyTraining" TEXT,
+    "numberHours" INTEGER,
+    "hourDecimal" REAL,
+    "isPresentWork" BOOLEAN NOT NULL DEFAULT false,
+    "isGovtService" BOOLEAN NOT NULL DEFAULT false,
+    "dateFrom" DATETIME,
+    "dateTo" DATETIME,
+    "hrRemarks" TEXT,
+    "ord" REAL NOT NULL DEFAULT 0,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Training_applicantId_fkey" FOREIGN KEY ("applicantId") REFERENCES "Applicant" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Eligibility" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "applicantId" INTEGER NOT NULL,
+    "title" TEXT NOT NULL,
+    "rating" TEXT,
+    "examDate" TEXT,
+    "examPlace" TEXT,
+    "licenseNumber" TEXT,
+    "licenseValidity" TEXT,
+    "hrRemarks" TEXT,
+    "ord" REAL NOT NULL DEFAULT 0,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Eligibility_applicantId_fkey" FOREIGN KEY ("applicantId") REFERENCES "Applicant" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Award" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "applicantId" INTEGER NOT NULL,
+    "recognitionType" TEXT,
+    "scope" TEXT,
+    "details" TEXT,
+    "category" TEXT,
+    "provider" TEXT,
+    "dateGranted" TEXT,
+    "points" INTEGER,
+    "hrRemarks" TEXT,
+    "ord" REAL NOT NULL DEFAULT 0,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Award_applicantId_fkey" FOREIGN KEY ("applicantId") REFERENCES "Applicant" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Position" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "itemNumber" TEXT,
+    "positionTitle" TEXT NOT NULL,
+    "positionType" TEXT,
+    "division" TEXT,
+    "section" TEXT,
+    "salaryGrade" TEXT,
+    "salaryStep" TEXT,
+    "salaryAmount" REAL,
+    "cscEducation" TEXT,
+    "cscEligibility" TEXT,
+    "cscEligibilityGroup" TEXT,
+    "cscWorkExperience" TEXT,
+    "cscTraining" TEXT,
+    "license" TEXT,
+    "preferredQualification" TEXT,
+    "keyCompetency" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "JobPosting" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "title" TEXT NOT NULL,
+    "positionType" TEXT,
+    "numberOfVacancy" INTEGER,
+    "status" TEXT NOT NULL DEFAULT 'PUBLISHED',
+    "briefDescription" TEXT,
+    "briefDescriptionHtml" TEXT,
+    "compensationPackage" TEXT,
+    "compensationHtml" TEXT,
+    "otherQualifications" TEXT,
+    "otherQualificationsHtml" TEXT,
+    "publishDate" DATETIME,
+    "deadlineDate" DATETIME,
+    "processingDate" DATETIME,
+    "positionId" INTEGER,
+    "authorId" TEXT,
+    "publishedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "JobPosting_positionId_fkey" FOREIGN KEY ("positionId") REFERENCES "Position" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT "JobPosting_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Application" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "applicantId" INTEGER NOT NULL,
+    "jobId" INTEGER NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'Applied',
+    "reason" TEXT,
+    "dateApplied" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    "snapshotProfile" TEXT,
+    "snapshotEducations" TEXT,
+    "snapshotExperiences" TEXT,
+    "snapshotTrainings" TEXT,
+    "snapshotEligibilities" TEXT,
+    "snapshotAwards" TEXT,
+    CONSTRAINT "Application_applicantId_fkey" FOREIGN KEY ("applicantId") REFERENCES "Applicant" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Application_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "JobPosting" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Notification" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "applicantId" INTEGER NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "read" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Notification_applicantId_fkey" FOREIGN KEY ("applicantId") REFERENCES "Applicant" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "EmailLog" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "to" TEXT NOT NULL,
+    "subject" TEXT NOT NULL,
+    "bodyText" TEXT,
+    "bodyHtml" TEXT,
+    "provider" TEXT NOT NULL DEFAULT 'mock',
+    "status" TEXT NOT NULL DEFAULT 'mock',
+    "providerRef" TEXT,
+    "error" TEXT,
+    "relatedType" TEXT,
+    "relatedId" INTEGER,
+    "attachments" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "SmsLog" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "to" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "provider" TEXT NOT NULL DEFAULT 'mock',
+    "status" TEXT NOT NULL DEFAULT 'mock',
+    "providerRef" TEXT,
+    "error" TEXT,
+    "relatedType" TEXT,
+    "relatedId" INTEGER,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "AuditLog" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "timestamp" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "userId" TEXT,
+    "userLabel" TEXT,
+    "userRole" TEXT,
+    "action" TEXT NOT NULL,
+    "entityType" TEXT,
+    "entityId" TEXT,
+    "description" TEXT,
+    "ipAddress" TEXT
+);
+
+-- CreateTable
+CREATE TABLE "Document" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "applicantId" INTEGER NOT NULL,
+    "uploadedById" TEXT,
+    "fileName" TEXT NOT NULL,
+    "originalName" TEXT NOT NULL,
+    "mimeType" TEXT NOT NULL,
+    "size" INTEGER NOT NULL,
+    "filePath" TEXT NOT NULL,
+    "category" TEXT NOT NULL DEFAULT 'SUPPORTING',
+    "status" TEXT NOT NULL DEFAULT 'UPLOADED',
+    "extractedJson" TEXT,
+    "extractionError" TEXT,
+    "extractedAt" DATETIME,
+    "qualityScore" INTEGER,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Document_applicantId_fkey" FOREIGN KEY ("applicantId") REFERENCES "Applicant" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "EligibilityRef" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT NOT NULL,
+    "index" INTEGER NOT NULL DEFAULT 0
+);
+
+-- CreateTable
+CREATE TABLE "DropdownOption" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "fieldKey" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+    "valueKey" TEXT NOT NULL,
+    "label" TEXT NOT NULL,
+    "hint" TEXT,
+    "createdById" TEXT,
+    "createdByLabel" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "Course" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT NOT NULL,
+    "abbreviation" TEXT,
+    "category" TEXT,
+    "level" TEXT
+);
+
+-- CreateTable
+CREATE TABLE "ContactRequest" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "subject" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'OPEN',
+    "handledById" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "resolvedAt" DATETIME,
+    CONSTRAINT "ContactRequest_handledById_fkey" FOREIGN KEY ("handledById") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE INDEX "EmailOtp_email_purpose_idx" ON "EmailOtp"("email", "purpose");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Applicant_userId_key" ON "Applicant"("userId");
+
+-- CreateIndex
+CREATE INDEX "Education_applicantId_idx" ON "Education"("applicantId");
+
+-- CreateIndex
+CREATE INDEX "WorkExperience_applicantId_idx" ON "WorkExperience"("applicantId");
+
+-- CreateIndex
+CREATE INDEX "Training_applicantId_idx" ON "Training"("applicantId");
+
+-- CreateIndex
+CREATE INDEX "Eligibility_applicantId_idx" ON "Eligibility"("applicantId");
+
+-- CreateIndex
+CREATE INDEX "Award_applicantId_idx" ON "Award"("applicantId");
+
+-- CreateIndex
+CREATE INDEX "Position_positionTitle_idx" ON "Position"("positionTitle");
+
+-- CreateIndex
+CREATE INDEX "JobPosting_publishedAt_idx" ON "JobPosting"("publishedAt");
+
+-- CreateIndex
+CREATE INDEX "Application_applicantId_jobId_idx" ON "Application"("applicantId", "jobId");
+
+-- CreateIndex
+CREATE INDEX "Application_status_idx" ON "Application"("status");
+
+-- CreateIndex
+CREATE INDEX "Application_dateApplied_idx" ON "Application"("dateApplied");
+
+-- CreateIndex
+CREATE INDEX "Notification_applicantId_idx" ON "Notification"("applicantId");
+
+-- CreateIndex
+CREATE INDEX "EmailLog_relatedType_relatedId_idx" ON "EmailLog"("relatedType", "relatedId");
+
+-- CreateIndex
+CREATE INDEX "SmsLog_relatedType_relatedId_idx" ON "SmsLog"("relatedType", "relatedId");
+
+-- CreateIndex
+CREATE INDEX "AuditLog_timestamp_idx" ON "AuditLog"("timestamp");
+
+-- CreateIndex
+CREATE INDEX "AuditLog_action_idx" ON "AuditLog"("action");
+
+-- CreateIndex
+CREATE INDEX "AuditLog_entityType_entityId_idx" ON "AuditLog"("entityType", "entityId");
+
+-- CreateIndex
+CREATE INDEX "Document_applicantId_category_idx" ON "Document"("applicantId", "category");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "EligibilityRef_name_key" ON "EligibilityRef"("name");
+
+-- CreateIndex
+CREATE INDEX "DropdownOption_fieldKey_idx" ON "DropdownOption"("fieldKey");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "DropdownOption_fieldKey_valueKey_key" ON "DropdownOption"("fieldKey", "valueKey");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Course_name_key" ON "Course"("name");
+
+-- CreateIndex
+CREATE INDEX "ContactRequest_status_createdAt_idx" ON "ContactRequest"("status", "createdAt");
+

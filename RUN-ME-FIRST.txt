@@ -1,0 +1,87 @@
+RMIS v4.2 — Recruitment Management Information System
+Snapshot with ALL the latest changes (2026-10-19, evening refresh 5)
+=====================================================
+
+WHAT'S INSIDE
+- Full source (src/, prisma/, public/, scripts/, deploy/, mini-services/)
+- .env — sandbox environment, ready to run (mock email/SMS providers,
+  DATABASE_URL points to db/production-data.db which is INCLUDED, so the
+  demo data — postings, applicants, applications — is exactly as previewed)
+- DEPLOYMENT.md — full deployment/run documentation
+- AGENTS.md — project conventions + email-system freeze rules
+- RELEASE-NOTES.md, GLOSSARY.md, db-schema.txt
+
+QUICK START (Bun)
+  bun install
+  bun run dev          # http://localhost:3000
+
+QUICK START (npm)
+  npm install
+  npm run dev
+
+TEST ACCOUNTS (all password123)
+  testapplicant        — applicant, profile marked complete, 1 application
+  liza.fernandez       — applicant demo account
+  testevaluator        — evaluator queue demo
+  (see prisma/seed.ts + DEPLOYMENT.md for the full demo roster)
+
+RE-SEED FROM SCRATCH (optional)
+  bun run db:push
+  bunx tsx prisma/seed.ts
+
+LATEST CHANGES IN THIS SNAPSHOT
+- Frontpage/Job Opportunities cards: the expanded quick view is slimmed to
+  just the "Job description" block — the Item No. / Vacancies / Salary
+  Grade / Monthly Salary / Published / Deadline facts grid is gone (the
+  complete facts still live in the desktop detail pane and on the posting
+  page). On phones the card summary is no longer tappable; the expansion
+  ends in a "View Details" button that opens the complete posting page
+  (#/job-opportunities?job=<id>) — mobile view only, desktop keeps the
+  card-tap → side pane flow.
+- Applicant home on PHONES: the mini profile card is replaced by a
+  brand-blue promo banner ("See how you can find a job Quickly") with a
+  white "Read more" pill that routes to the Job Opportunities board —
+  mobile view only; desktop keeps the identity card with the metrics.
+  Banner art is the user-supplied applicant-at-laptop vector
+  (public/home-banner-vector.png) with its paper background keyed out,
+  sized back to the previous cutout's compact footprint after review
+  (the AI-generated worker cutout was dropped).
+- Job cards on the frontpage and the Job Opportunities board: the
+  "Read full description" link in the inline quick view is gone —
+  selecting a card already shows the complete posting in the adjacent
+  pane (the home Apply Now pane keeps its link, since it deep-links to
+  the dedicated posting page). The Applied pill and deadline warning
+  still render in the quick view when they apply.
+- "Vacant Positions" page fully retired: the Job Opportunities explorer
+  is the canonical board at #/job-opportunities and the complete posting
+  page lives at #/job-opportunities?job=<id> (the "Read full description"
+  destination). Legacy #/vacant-positions and #/jobs links alias onto the
+  board, so old bookmarks keep working.
+- Frontpage decluttered: the posting pane's "View all jobs" link is gone
+  — the landing IS the job board, so the link only looped back to the
+  same content (mobile keeps its "Back to job list" affordance).
+- Mobile Profile polish: the Personal Information sub-parts (Identity /
+  Address / Legal) render as ONE card on phones — no more box-in-a-box
+  double insets squeezing the fields; Character References keeps its
+  per-reference entry cards.
+- Section-header buttons compacted on phones: "Edit Profile", "Done
+  Editing", "Cancel" and "Save Changes" shrink to a tidy 36px pill on
+  mobile and keep the exact 44px desktop anatomy from sm up.
+- Profile wizard footer on mobile: "Back to …" / "Continue to …" now
+  share one compact row of equal halves with truncating labels (no more
+  oversized wrapping pills); solo Continue takes the full row.
+- Job detail page (#/job-opportunities?job=<id>) rebuilt to the pinned
+  Workze-style reference: typographic title/employer/meta column, kept
+  "Job Description | Job Detail" tab navs, sticky summary card with the
+  dark "Apply for this job" CTA + agency card.
+- Applicant Profile: redundant header "Add" buttons removed from the
+  Education / Work Experience / Training / Eligibility / Awards sections
+  (the in-form "Add additional entry" slot is the single add path).
+- "Mark Profile as Complete" moved to the right of the "My Profile"
+  section header (disabled until required sections are filled; green
+  "Profile Complete" pill after marking).
+- PDS completion gate: once the required profile sections are filled,
+  Home and the Jobs pages redirect back to the profile with an
+  explanatory toast until "Mark Profile as Complete" is clicked.
+- Router fix: #/profile and #/account-settings render their own views
+  (a jobs-board dispatch regression no longer clobbers them).
