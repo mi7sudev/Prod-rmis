@@ -2862,3 +2862,21 @@ Stage Summary:
 - Mirror DB is now PRODUCTION-CLEAN: exactly the real users, real jobs, real applications, real logs — zero test/QA artifacts anywhere (accounts, children, audits, sms, contact, otp, files). Rollback path: /tmp/pre-cleanup-snapshot-20261023-045657.db.
 - Full-role audit (Task 93) is CLOSED: ADMIN + EVALUATOR + APPLICANT all passed; email untouched throughout (EmailLog byte-frozen at 197 the entire audit).
 - Deployment ready: v4.7 bundle rmis-v4.7-2026-10-23.tar.gz (md5 f75d40a55f495acfef07a7b392d8036d, root + download/); bundle EXCLUDES db/ — the cleaned mirror does NOT ride along; production DB on the server is untouched by this cleanup. Reminders for go-live: VM middleware update (deploy/mirdc_middleware/index.js → backup/replace/restart → curl /health?smtp=1) + RUNBOOK-email-preflight.md checklist.
+
+---
+Task ID: 94 (publish to GitHub)
+Agent: opencode (DeepSeek V4.1 Flash)
+Task: User request - "push this to my github https://github.com/mi7sudev/Prod-rmis.git include everything". Publish the working tree as the initial commit of a new repo.
+
+Work Log:
+- Repo was NOT a git repository (no .git, no remote). Initialised `git init -b main`; identity set locally to mi7sudev <mi7sudev@users.noreply.github.com>; core.autocrlf disabled to keep bytes intact.
+- Pre-push secret sweep over .env keys against all text sources: found the live 64-hex EMAIL_MIDDLEWARE_API_KEY hard-coded at DEPLOYMENT.md:54. REDACTED to a placeholder before staging (Tier 3 rule - never commit middleware API keys). No other secret hits; the design-review.html hit was base64 image data. NEXTAUTH_SECRET appears only in .env.
+- Exclusions honoured: .env / .env* (gitignore:34), skills/ 57MB toolchain (gitignore:54, user opted to keep ignored), db files (none present on disk).
+- User explicitly ruled to INCLUDE all of upload/ (84 files, 23.5MB) despite 34 applicant PDFs/XLSX being real personal data and the repo being publicly reachable - decision recorded here and re-flagged in the session summary; repo can be made private or the files purged from history if that changes.
+- Staged 426 files (271 src, 84 upload, 16 scripts, 10 public, 9 .zscripts, 8 deploy, 3 prisma, misc docs). Largest object 4.7MB PDF - well under GitHub's 100MB limit. No .db, no .env, no skills in the tree.
+- Commit 12df2d6, pushed `main` to origin with `push -u`; exit 0 on first attempt (stored Windows Credential Manager token, user mi7sudev). Remote and local HEAD verified identical (12df2d672a97892fa370e5ea9f92aa917dd2512f), 426 files on the remote tree.
+
+Stage Summary:
+- Repository published: https://github.com/mi7sudev/Prod-rmis (branch main, 1 commit, 426 files).
+- No source, email-sender, or runtime behaviour changed. Only DEPLOYMENT.md documentation redacted. notify.ts / mirdc_middleware untouched.
+- Follow-up for the user: confirm whether the repo should be private given the applicant documents now in its history.
